@@ -1,24 +1,37 @@
-import sys
+from sys import argv
 from tqdm import tqdm
 
-topics = ['javascript', 'java', 'python', 'ruby', 'php',
-          'c++', 'c#', 'go', 'scala', 'swift']
-topic_set = set(topics)
-topic_map = dict(zip(topics, range(1, len(topics) + 1)))
+tags_index = {
+    'javascript': 1,
+    'java': 2,
+    'python': 3,
+    'ruby': 4,
+    'php': 5,
+    'c++': 6,
+    'c#': 7,
+    'go': 8,
+    'scala': 9,
+    'swift': 10
+}
 
-num_corrupted, num_selected = 0, 0
-with open(sys.argv[1]) as inp_file, open(sys.argv[2], 'w') as out_file:
-    for line in tqdm(inp_file):
-        values = line.strip().split('\t')
-        if len(values) != 2:
-            num_corrupted += 1
-            continue
-        text, labels = values
-        labels = set(labels.split())
-        topics_from_list = labels.intersection(topic_set)
-        if len(topics_from_list) == 1:
-            num_selected += 1
-            out_file.write('{} | {}\n'.format(str(topic_map[list(topics_from_list)[0]]), 
-                                              text.strip().replace(':', '').replace('|', '')))
-print("{} lines selected, {} lines corrupted.".format(num_selected, num_corrupted))
+tags = set(tags_index.keys())
 
+
+def process(in_file, out_file):
+    with open(in_file, 'r') as i_f, open(out_file, 'w') as o_f:
+        for line in tqdm(i_f):
+            if line.count('\t') != 1:
+                continue
+            parts = line.strip().split('\t')
+            if len(parts) != 2:
+                continue
+            tags_ = parts[1].split(' ')
+            if len(tags.intersection(tags_)) != 1:
+                continue
+            tag = tags_index[list(tags.intersection(tags_))[0]]
+            text = parts[0].replace('?', '').replace('|', '')
+            o_f.write('{} |text {}\n'.format(tag, text))
+
+
+if __name__ == '__main__':
+    process(argv[1], argv[2])
